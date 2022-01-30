@@ -415,7 +415,7 @@ public class BasicJanitorMonkeyContext extends BasicSimianArmyContext implements
         if (configuration().getBoolOrElse("simianarmy.janitor.edda.enabled", false)) {
             boolean useEddaApplicationOwner = configuration().getBoolOrElse("simianarmy.janitor.rule.orphanedELBRule.edda.useApplicationOwner", false);
             String eddaFallbackOwnerEmail = configuration().getStr("simianarmy.janitor.rule.orphanedELBRule.edda.fallbackOwnerEmail");
-            elbCrawler = new EddaELBJanitorCrawler(createEddaClient(), eddaFallbackOwnerEmail, useEddaApplicationOwner, awsClient().region());
+            elbCrawler = new EddaELBJanitorCrawler(createEddaClient(), eddaFallbackOwnerEmail, useEddaApplicationOwner, null, awsClient().region());
         } else {
             elbCrawler = new ELBJanitorCrawler(awsClient());
         }

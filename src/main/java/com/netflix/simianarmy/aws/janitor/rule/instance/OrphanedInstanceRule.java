@@ -88,6 +88,8 @@ public class OrphanedInstanceRule implements Rule {
         this(calendar, instanceAgeThreshold, retentionDaysWithOwner, retentionDaysWithoutOwner, false);
     }
 
+
+    
     @Override
     public boolean isValid(Resource resource) {
         Validate.notNull(resource);

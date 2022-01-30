@@ -60,12 +60,13 @@ public class OrphanedELBRule implements Rule {
     @Override
     public boolean isValid(Resource resource) {
         Validate.notNull(resource);
+
         if (!resource.getResourceType().name().equals("ELB")) {
             return true;
         }
-
         String instanceCountStr = resource.getAdditionalField("instanceCount");
         String refASGCountStr = resource.getAdditionalField("referencedASGCount");
+
         if (StringUtils.isBlank(instanceCountStr)) {
             LOGGER.info(String.format("Resource %s is missing instance count, not marked as a cleanup candidate.", resource.getId()));
             return true;
@@ -74,7 +75,6 @@ public class OrphanedELBRule implements Rule {
             LOGGER.info(String.format("Resource %s is missing referenced ASG count, not marked as a cleanup candidate.", resource.getId()));
             return true;
         }
-
         int instanceCount = NumberUtils.toInt(instanceCountStr);
         int refASGCount = NumberUtils.toInt(refASGCountStr);
         if (instanceCount == 0 && refASGCount == 0) {
@@ -86,6 +86,9 @@ public class OrphanedELBRule implements Rule {
             return true;
         }
     }
+
+
+
 
     private void markResource(Resource resource) {
         if (resource.getExpectedTerminationTime() == null) {

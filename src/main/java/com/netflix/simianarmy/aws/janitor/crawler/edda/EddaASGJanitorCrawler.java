@@ -24,6 +24,7 @@ import com.netflix.simianarmy.Resource;
 import com.netflix.simianarmy.ResourceType;
 import com.netflix.simianarmy.aws.AWSResource;
 import com.netflix.simianarmy.aws.AWSResourceType;
+import com.netflix.simianarmy.aws.janitor.crawler.AbstractJanitorCrawler;
 import com.netflix.simianarmy.basic.BasicSimianArmyContext;
 import com.netflix.simianarmy.client.edda.EddaClient;
 import com.netflix.simianarmy.janitor.JanitorCrawler;
@@ -47,7 +48,7 @@ import java.util.regex.Pattern;
 /**
  * The crawler to crawl AWS auto scaling groups for janitor monkey using Edda.
  */
-public class EddaASGJanitorCrawler implements JanitorCrawler {
+public class EddaASGJanitorCrawler extends AbstractJanitorCrawler implements JanitorCrawler {
 
     /** The Constant LOGGER. */
     private static final Logger LOGGER = LoggerFactory.getLogger(EddaASGJanitorCrawler.class);
@@ -175,16 +176,8 @@ public class EddaASGJanitorCrawler implements JanitorCrawler {
                 .withLaunchTime(new Date(createdTime));
 
         JsonNode tags = jsonNode.get("tags");
-        if (tags == null || !tags.isArray() || tags.size() == 0) {
-            LOGGER.debug(String.format("No tags is found for %s", resource.getId()));
-        } else {
-            for (Iterator<JsonNode> it = tags.getElements(); it.hasNext();) {
-                JsonNode tag = it.next();
-                String key = tag.get("key").getTextValue();
-                String value = tag.get("value").getTextValue();
-                resource.setTag(key, value);
-            }
-        }
+        setTagsJsonNode(tags, resource);
+
 
         String owner = getOwnerEmailForResource(resource);
         if (owner != null) {

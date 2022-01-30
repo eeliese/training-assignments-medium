@@ -45,7 +45,7 @@ import java.util.Map;
 /**
  * The RDSConformityClusterTracker implementation in RDS (relational database).
  */
-public class RDSConformityClusterTracker implements ConformityClusterTracker {
+public class RDSConformityClusterTracker implements ConformityClusterTracker{
 
     /** The Constant LOGGER. */
     private static final Logger LOGGER = LoggerFactory.getLogger(RDSConformityClusterTracker.class);

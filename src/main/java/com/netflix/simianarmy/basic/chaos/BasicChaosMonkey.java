@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * The Class BasicChaosMonkey.
  */
-public class BasicChaosMonkey extends ChaosMonkey {
+public class BasicChaosMonkey extends ChaosMonkey implements MonkeyConfiguration {
 
     /** The Constant LOGGER. */
     private static final Logger LOGGER = LoggerFactory.getLogger(BasicChaosMonkey.class);
@@ -452,5 +452,40 @@ public class BasicChaosMonkey extends ChaosMonkey {
     @Override
     public List<ChaosType> getChaosTypes() {
         return Lists.newArrayList(allChaosTypes);
+    }
+
+    @Override
+    public boolean getBool(String property) {
+        return false;
+    }
+
+    @Override
+    public boolean getBoolOrElse(String property, boolean dflt) {
+        return false;
+    }
+
+    @Override
+    public double getNumOrElse(String property, double dflt) {
+        return 0;
+    }
+
+    @Override
+    public String getStr(String property) {
+        return null;
+    }
+
+    @Override
+    public String getStrOrElse(String property, String dflt) {
+        return null;
+    }
+
+    @Override
+    public void reload() {
+
+    }
+
+    @Override
+    public void reload(String groupName) {
+
     }
 }

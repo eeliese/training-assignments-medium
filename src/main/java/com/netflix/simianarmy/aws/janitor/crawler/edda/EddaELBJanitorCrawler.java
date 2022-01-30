@@ -23,7 +23,10 @@ import com.netflix.simianarmy.Resource;
 import com.netflix.simianarmy.ResourceType;
 import com.netflix.simianarmy.aws.AWSResource;
 import com.netflix.simianarmy.aws.AWSResourceType;
+import com.netflix.simianarmy.aws.janitor.crawler.AbstractAWSJanitorCrawler;
+import com.netflix.simianarmy.aws.janitor.crawler.AbstractJanitorCrawler;
 import com.netflix.simianarmy.basic.BasicSimianArmyContext;
+import com.netflix.simianarmy.client.aws.AWSClient;
 import com.netflix.simianarmy.client.edda.EddaClient;
 import com.netflix.simianarmy.janitor.JanitorCrawler;
 import org.apache.commons.lang.StringUtils;
@@ -39,7 +42,8 @@ import java.util.*;
 /**
  * The crawler to crawl AWS instances for janitor monkey using Edda.
  */
-public class EddaELBJanitorCrawler implements JanitorCrawler {
+public class EddaELBJanitorCrawler extends AbstractJanitorCrawler implements JanitorCrawler  {
+
 
     class DNSEntry {
         String dnsName;
@@ -67,6 +71,7 @@ public class EddaELBJanitorCrawler implements JanitorCrawler {
      *            the regions the crawler will crawl resources for
      */
     public EddaELBJanitorCrawler(EddaClient eddaClient, String fallbackOwnerEmail, boolean useEddaApplicationOwner, String... regions) {
+
         this.useEddaApplicationOwner = useEddaApplicationOwner;
         this.fallbackOwnerEmail = fallbackOwnerEmail;
         Validate.notNull(eddaClient);
@@ -159,19 +164,7 @@ public class EddaELBJanitorCrawler implements JanitorCrawler {
         }
 
         Map<String, List<String>> elBtoASGMap = buildELBtoASGMap(region);
-        for(Resource resource : resources) {
-            List<String> asgList = elBtoASGMap.get(resource.getId());
-            if (asgList != null && asgList.size() > 0) {
-                resource.setAdditionalField("referencedASGCount", "" + asgList.size());
-                String asgStr = StringUtils.join(asgList,",");
-                resource.setDescription(resource.getDescription() + ", ASGS=" + asgStr);
-                LOGGER.debug(String.format("Resource ELB %s is referenced by ASGs %s", resource.getId(), asgStr));
-            } else {
-                resource.setAdditionalField("referencedASGCount", "0");
-                resource.setDescription(resource.getDescription() + ", ASGS=none");
-                LOGGER.debug(String.format("No ASGs found for ELB %s", resource.getId()));
-            }
-        }
+        setReferencedASGCount(elBtoASGMap, resources);
 
         Map<String, List<DNSEntry>> elBtoDNSMap = buildELBtoDNSMap(region);
         for(Resource resource : resources) {
@@ -201,6 +194,7 @@ public class EddaELBJanitorCrawler implements JanitorCrawler {
 
         return resources;
     }
+
 
     private Map<String, List<String>> buildELBtoASGMap(String region) {
         String url = eddaClient.getBaseUrl(region) + "/aws/autoScalingGroups;_expand:(autoScalingGroupName,loadBalancerNames)";
@@ -257,16 +251,8 @@ public class EddaELBJanitorCrawler implements JanitorCrawler {
         resource.setAdditionalField("DNSName", dnsName);
 
         JsonNode tags = jsonNode.get("tags");
-        if (tags == null || !tags.isArray() || tags.size() == 0) {
-            LOGGER.debug(String.format("No tags is found for %s", resource.getId()));
-        } else {
-            for (Iterator<JsonNode> it = tags.getElements(); it.hasNext();) {
-                JsonNode tag = it.next();
-                String key = tag.get("key").getTextValue();
-                String value = tag.get("value").getTextValue();
-                resource.setTag(key, value);
-            }
-        }
+        setTagsJsonNode(tags, resource);
+
 
         String owner = getOwnerEmailForResource(resource);
         if (owner != null) {

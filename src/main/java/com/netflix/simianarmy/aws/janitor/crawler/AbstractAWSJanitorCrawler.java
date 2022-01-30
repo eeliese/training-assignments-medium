@@ -18,16 +18,22 @@
 package com.netflix.simianarmy.aws.janitor.crawler;
 
 import com.netflix.simianarmy.basic.BasicSimianArmyContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.netflix.simianarmy.Resource;
 import com.netflix.simianarmy.client.aws.AWSClient;
 import com.netflix.simianarmy.janitor.JanitorCrawler;
 
+import java.util.List;
+import java.util.Map;
+
+import static com.netflix.simianarmy.aws.janitor.RDSJanitorResourceTracker.LOGGER;
+
 /**
  * The abstract class for crawler of AWS resources.
  */
-public abstract class AbstractAWSJanitorCrawler implements JanitorCrawler {
+public abstract class AbstractAWSJanitorCrawler extends AbstractJanitorCrawler implements JanitorCrawler {
     /** The AWS client. */
     private final AWSClient awsClient;
 
@@ -51,6 +57,8 @@ public abstract class AbstractAWSJanitorCrawler implements JanitorCrawler {
         return resource.getTag(BasicSimianArmyContext.GLOBAL_OWNER_TAGKEY);
     }
 
+
+
     /**
      * Gets the AWS client used by the crawler.
      * @return the AWS client used by the crawler.
@@ -58,5 +66,7 @@ public abstract class AbstractAWSJanitorCrawler implements JanitorCrawler {
     protected AWSClient getAWSClient() {
         return awsClient;
     }
+
+
 
 }

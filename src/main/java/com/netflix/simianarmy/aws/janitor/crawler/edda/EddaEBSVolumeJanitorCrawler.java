@@ -24,6 +24,7 @@ import com.netflix.simianarmy.Resource;
 import com.netflix.simianarmy.ResourceType;
 import com.netflix.simianarmy.aws.AWSResource;
 import com.netflix.simianarmy.aws.AWSResourceType;
+import com.netflix.simianarmy.aws.janitor.crawler.AbstractJanitorCrawler;
 import com.netflix.simianarmy.basic.BasicSimianArmyContext;
 import com.netflix.simianarmy.client.edda.EddaClient;
 import com.netflix.simianarmy.janitor.JanitorCrawler;
@@ -43,7 +44,7 @@ import java.util.*;
 /**
  * The crawler to crawl AWS EBS volumes for Janitor monkey using Edda.
  */
-public class EddaEBSVolumeJanitorCrawler implements JanitorCrawler {
+public class EddaEBSVolumeJanitorCrawler extends AbstractJanitorCrawler implements JanitorCrawler {
     /** The Constant LOGGER. */
     private static final Logger LOGGER = LoggerFactory.getLogger(EddaEBSVolumeJanitorCrawler.class);
 

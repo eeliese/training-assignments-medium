@@ -37,7 +37,9 @@ import java.util.Date;
  * 2) are not used by any auto scaling groups.
  */
 public class OldUnusedLaunchConfigRule implements Rule {
-    /** The Constant LOGGER. */
+    /**
+     * The Constant LOGGER.
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(OldUnusedLaunchConfigRule.class);
 
     private static final String TERMINATION_REASON = "Launch config is not used by any ASG";
@@ -51,13 +53,10 @@ public class OldUnusedLaunchConfigRule implements Rule {
     /**
      * Constructor for OrphanedInstanceRule.
      *
-     * @param calendar
-     *            The calendar used to calculate the termination time
-     * @param ageThreshold
-     *            The number of days that a launch configuration is considered as a cleanup candidate
-     *            since it is created
-     * @param retentionDays
-     *            The number of days that the unused launch configuration is retained before being terminated
+     * @param calendar      The calendar used to calculate the termination time
+     * @param ageThreshold  The number of days that a launch configuration is considered as a cleanup candidate
+     *                      since it is created
+     * @param retentionDays The number of days that the unused launch configuration is retained before being terminated
      */
     public OldUnusedLaunchConfigRule(MonkeyCalendar calendar, int ageThreshold, int retentionDays) {
         Validate.notNull(calendar);
@@ -71,34 +70,45 @@ public class OldUnusedLaunchConfigRule implements Rule {
     @Override
     public boolean isValid(Resource resource) {
         Validate.notNull(resource);
-        if (!"LAUNCH_CONFIG".equals(resource.getResourceType().name())) {
-            return true;
-        }
         AWSResource lcResource = (AWSResource) resource;
         String usedByASG = lcResource.getAdditionalField(LaunchConfigJanitorCrawler.LAUNCH_CONFIG_FIELD_USED_BY_ASG);
-        if (StringUtils.isNotEmpty(usedByASG) && !Boolean.parseBoolean(usedByASG)) {
-            if (resource.getLaunchTime() == null) {
-                LOGGER.error(String.format("The launch config %s has no creation time.", resource.getId()));
-                return true;
-            } else {
-                DateTime launchTime = new DateTime(resource.getLaunchTime().getTime());
-                DateTime now = new DateTime(calendar.now().getTimeInMillis());
-                if (now.isBefore(launchTime.plusDays(ageThreshold))) {
-                    LOGGER.info(String.format("The unused launch config %s has not been created for more than %d days",
-                            resource.getId(), ageThreshold));
-                    return true;
+        if ("LAUNCH_CONFIG".equals(resource.getResourceType().name())) {
+            if (StringUtils.isNotEmpty(usedByASG) && !Boolean.parseBoolean(usedByASG)) {
+                if (!launchTimeOk(resource)) {
+                    setTerminationTimeAndReason(resource);
+                    return false;
                 }
-                LOGGER.info(String.format("The unused launch config %s has been created for more than %d days",
-                        resource.getId(), ageThreshold));
-                if (resource.getExpectedTerminationTime() == null) {
-                    Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionDays);
-                    resource.setExpectedTerminationTime(terminationTime);
-                    resource.setTerminationReason(TERMINATION_REASON);
-                }
-                return false;
             }
         }
         return true;
+    }
+
+
+    private boolean launchTimeOk(Resource resource) {
+        DateTime launchTime = new DateTime(resource.getLaunchTime().getTime());
+        DateTime now = new DateTime(calendar.now().getTimeInMillis());
+        if (now.isBefore(launchTime.plusDays(ageThreshold))) {
+            LOGGER.info(String.format("The unused launch config %s has not been created for more than %d days",
+                    resource.getId(), ageThreshold));
+            return true;
+        }else if (resource.getLaunchTime() == null ){
+            LOGGER.error(String.format("The launch config %s has no creation time.", resource.getId()));
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void setTerminationTimeAndReason (Resource resource){
+        LOGGER.info(String.format("The unused launch config %s has been created for more than %d days",
+                resource.getId(), ageThreshold));
+        if (resource.getExpectedTerminationTime() == null) {
+            DateTime now = new DateTime(calendar.now().getTimeInMillis());
+            Date terminationTime = calendar.getBusinessDay(new Date(now.getMillis()), retentionDays);
+            resource.setExpectedTerminationTime(terminationTime);
+            resource.setTerminationReason(TERMINATION_REASON);
+        }
+
     }
 
 }
